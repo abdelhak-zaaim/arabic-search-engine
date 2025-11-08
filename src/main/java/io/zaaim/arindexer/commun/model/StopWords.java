@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -16,13 +17,13 @@ public class StopWords {
             Path stopWordsPath = Path.of("src/main/resources/stopwords.txt");
             try {
                 List<String> stopWords = Files.readAllLines(stopWordsPath);
-                stopWordsRef = new WeakReference<>(Set.copyOf(stopWords));
-                return new HashSet<>(stopWords);
+                stopWordsRef = new WeakReference<>(Collections.unmodifiableSet(new HashSet<>(stopWords)));
+                return stopWordsRef.get();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
-        return new HashSet<>(stopWordsRef.get());
+        return stopWordsRef.get();
     }
 
 }
