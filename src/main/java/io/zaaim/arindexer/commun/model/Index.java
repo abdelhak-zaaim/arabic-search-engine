@@ -1,6 +1,7 @@
 package io.zaaim.arindexer.commun.model;
 
-import java.io.Serializable;
+import java.io.*;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,6 +24,24 @@ public class Index implements Serializable {
         }
         subIndex.parentIndex = this;
         subIndexes.put(key, subIndex);
+    }
+
+    public void saveIndexTotoFile(Path path) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(
+                new FileOutputStream(path.toFile()))) {
+            oos.writeObject(this);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to save index to file: " + path, e);
+        }
+    }
+
+    public static Index loadIndexFromFile(Path path) {
+        try (var ois = new ObjectInputStream(
+                new FileInputStream(path.toFile()))) {
+            return (Index) ois.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException("Failed to load index from file: " + path, e);
+        }
     }
 
 }
