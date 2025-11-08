@@ -1,6 +1,7 @@
 package io.zaaim.arindexer.index.service.impl;
 
 import io.zaaim.arindexer.commun.model.Index;
+import io.zaaim.arindexer.commun.model.StopWords;
 import io.zaaim.arindexer.index.service.Indexer;
 import io.zaaim.arindexer.steemer.ArabicStemmerKhoja;
 import io.zaaim.arindexer.util.Tokenizer;
@@ -18,7 +19,6 @@ public class ArabicIndexer implements Indexer {
             throw new IOException("Index path does not exist or is not a directory: " + indexPath);
         }
 
-        Index index = new Index();
         Map<String, Map<String, Integer>> invertedIndex = new HashMap<>();
 
         ArabicStemmerKhoja stemmer = new ArabicStemmerKhoja();
@@ -50,17 +50,12 @@ public class ArabicIndexer implements Indexer {
                     }
                 });
 
-        Map<String, Map<String, Float>> tfIdfIndex = calculateTfIdf(invertedIndex);
-
-        System.out.println();
-
-        return index;
+        return calculateTfIdf(invertedIndex);
     }
 
-    private Map<String, Map<String, Float>> calculateTfIdf(Map<String, Map<String, Integer>> invertedIndex) {
+    private Index calculateTfIdf(Map<String, Map<String, Integer>> invertedIndex) {
         int totalDocuments = invertedIndex.size();
-        Map<String, Map<String, Float>> tfIdfIndex = new HashMap<>();
-
+        Index tfIdfIndex = new Index();
         // Calculate document frequency for each term
         Map<String, Integer> documentFrequency = new HashMap<>();
         for (Map<String, Integer> docTerms : invertedIndex.values()) {
@@ -89,16 +84,14 @@ public class ArabicIndexer implements Indexer {
                 tfIdfScores.put(term, tfIdf);
             }
 
-            tfIdfIndex.put(document, tfIdfScores);
+            tfIdfIndex.addEntry(document, tfIdfScores);
         }
 
         return tfIdfIndex;
     }
 
     private String[] removeStops(String[] tokens) throws IOException {
-
-        Path stopWordsPath = Path.of("src/main/resources/stopwords.txt");
-        List<String> stopWords = Files.readAllLines(stopWordsPath);
+        Set<String> stopWords = new StopWords().getStopWords();
 
         return Arrays.stream(tokens).filter(token -> !stopWords.contains(token)).toArray(String[]::new);
     }
