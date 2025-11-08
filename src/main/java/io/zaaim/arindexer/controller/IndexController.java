@@ -31,8 +31,13 @@ public class IndexController {
     private void startIndexing(ServerRequest req, ServerResponse res) {
         try {
             Index index = new ArabicIndexer().createIndex(Constants.STORAGE_DIR);
-            index.saveToFileAsXml(Constants.STORAGE_DIR.resolve("index.xml"));
-            res.send("Indexing started. Index saved to index.xml");
+
+            if (!Files.exists(Constants.INDEXES_DIR)) Files.createDirectories(Constants.INDEXES_DIR);
+            String indexFileName = "index-" + System.currentTimeMillis() + ".ser";
+
+            index.saveToFileAsXml(Constants.INDEXES_DIR.resolve(indexFileName));
+
+            res.send("Indexing started. Index saved to: " + Constants.INDEXES_DIR.resolve(indexFileName));
         } catch (IOException e) {
             res.status(500).send("Error starting indexing: " + e.getMessage());
         }
