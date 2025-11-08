@@ -1,6 +1,8 @@
 package io.zaaim.arindexer.controller;
 
 import io.helidon.webserver.Routing;
+import io.helidon.webserver.ServerRequest;
+import io.helidon.webserver.ServerResponse;
 import io.zaaim.arindexer.index.service.impl.ArabicIndexer;
 import io.zaaim.arindexer.steemer.ArabicStemmerKhoja;
 import io.zaaim.arindexer.util.Constants;
@@ -21,11 +23,11 @@ public class IndexController {
                 .post("/{index}/save", this::save);
     }
 
-    private void greet(io.helidon.webserver.ServerRequest req, io.helidon.webserver.ServerResponse res) {
+    private void greet(ServerRequest req, ServerResponse res) {
         res.send("Hello World !");
     }
 
-    private void startIndexing(io.helidon.webserver.ServerRequest req, io.helidon.webserver.ServerResponse res) {
+    private void startIndexing(ServerRequest req, ServerResponse res) {
         try {
             new ArabicIndexer().createIndex(Constants.STORAGE_DIR);
             res.send("Indexing started successfully");
@@ -34,7 +36,7 @@ public class IndexController {
         }
     }
 
-    private void stem(io.helidon.webserver.ServerRequest request, io.helidon.webserver.ServerResponse response) {
+    private void stem(ServerRequest request, ServerResponse response) {
         String word = request.path().param("word");
         if (word == null || word.isBlank()) {
             response.send("Missing path parameter 'word'.");
@@ -45,7 +47,7 @@ public class IndexController {
         response.send("Stemmed word: " + stemmed);
     }
 
-    private void save(io.helidon.webserver.ServerRequest request, io.helidon.webserver.ServerResponse response) {
+    private void save(ServerRequest request, ServerResponse response) {
         String index = request.path().param("index");
         if (index == null || index.isBlank()) {
             response.send("Missing path parameter 'index'.");
