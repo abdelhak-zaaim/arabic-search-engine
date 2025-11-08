@@ -1,4 +1,4 @@
-package io.zaaim.arindexer.index.service;
+package io.zaaim.arindexer.service;
 
 import io.zaaim.arindexer.model.Index;
 

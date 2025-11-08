@@ -1,8 +1,8 @@
-package io.zaaim.arindexer.index.service.impl;
+package io.zaaim.arindexer.service.impl;
 
 import io.zaaim.arindexer.model.Index;
 import io.zaaim.arindexer.model.StopWords;
-import io.zaaim.arindexer.index.service.Indexer;
+import io.zaaim.arindexer.service.Indexer;
 import io.zaaim.arindexer.stemmer.ArabicStemmerKhoja;
 import io.zaaim.arindexer.stemmer.Stemmer;
 import io.zaaim.arindexer.util.Tokenizer;

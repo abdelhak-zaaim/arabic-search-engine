@@ -11,10 +11,6 @@ public class Index implements Serializable {
 
     private Map<String, Map<String, Float>> index = new HashMap<>();
 
-    private Map<String, Index> subIndexes;
-
-    private Index parentIndex;
-
     private Path indexPath;
 
     // Factory method to create Index from file path
@@ -37,22 +33,6 @@ public class Index implements Serializable {
 
     public void addEntry(String key, Map<String, Float> vector) {
         index.put(key, new HashMap<>(vector));
-    }
-
-    public void addSubIndex(String key, Index subIndex) {
-        if (subIndexes == null) {
-            subIndexes = new HashMap<>();
-        }
-        subIndex.parentIndex = this;
-        subIndexes.put(key, subIndex);
-    }
-
-    public Map<String, Index> getSubIndexes() {
-        return Collections.unmodifiableMap(subIndexes);
-    }
-
-    public Index getParentIndex() {
-        return parentIndex;
     }
 
     public void saveIndexTotoFile(Path path) {
@@ -89,17 +69,6 @@ public class Index implements Serializable {
                 writer.write("    </entry>\n");
             }
             writer.write("  </entries>\n");
-
-            // Write sub-indexes if they exist
-            if (subIndexes != null && !subIndexes.isEmpty()) {
-                writer.write("  <subIndexes>\n");
-                for (Map.Entry<String, Index> subEntry : subIndexes.entrySet()) {
-                    writer.write("    <subIndex name=\"" + escapeXml(subEntry.getKey()) + "\">\n");
-                    writeIndexContent(writer, subEntry.getValue(), "      ");
-                    writer.write("    </subIndex>\n");
-                }
-                writer.write("  </subIndexes>\n");
-            }
 
             writer.write("</index>\n");
         } catch (IOException e) {
@@ -157,12 +126,6 @@ public class Index implements Serializable {
                         currentKey = null;
                         currentVector = null;
                     }
-                } else if (line.startsWith("<subIndex name=\"")) {
-                    String subIndexName = extractAttribute(line, "name");
-                    currentSubIndex = new Index();
-                    index.addSubIndex(subIndexName, currentSubIndex);
-                } else if (line.startsWith("</subIndex>")) {
-                    currentSubIndex = null;
                 }
             }
 
