@@ -3,7 +3,7 @@ package io.zaaim.arindexer.controller;
 import io.helidon.webserver.Routing;
 import io.helidon.webserver.ServerRequest;
 import io.helidon.webserver.ServerResponse;
-import io.zaaim.arindexer.commun.model.Index;
+import io.zaaim.arindexer.model.Index;
 import io.zaaim.arindexer.index.service.impl.ArabicIndexer;
 import io.zaaim.arindexer.stemmer.ArabicStemmerKhoja;
 import io.zaaim.arindexer.util.Constants;

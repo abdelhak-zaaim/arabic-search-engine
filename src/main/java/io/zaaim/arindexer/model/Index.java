@@ -1,4 +1,4 @@
-package io.zaaim.arindexer.commun.model;
+package io.zaaim.arindexer.model;
 
 import java.io.*;
 import java.nio.file.Path;

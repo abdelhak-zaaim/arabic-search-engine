@@ -1,4 +1,4 @@
-package io.zaaim.arindexer.commun.model;
+package io.zaaim.arindexer.model;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
