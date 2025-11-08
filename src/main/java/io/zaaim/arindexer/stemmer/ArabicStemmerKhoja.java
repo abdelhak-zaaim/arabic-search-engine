@@ -1,4 +1,4 @@
-package io.zaaim.arindexer.steemer;
+package io.zaaim.arindexer.stemmer;
 
 
 import java.util.Vector;

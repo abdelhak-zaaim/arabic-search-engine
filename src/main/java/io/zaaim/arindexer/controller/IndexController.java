@@ -4,7 +4,7 @@ import io.helidon.webserver.Routing;
 import io.helidon.webserver.ServerRequest;
 import io.helidon.webserver.ServerResponse;
 import io.zaaim.arindexer.index.service.impl.ArabicIndexer;
-import io.zaaim.arindexer.steemer.ArabicStemmerKhoja;
+import io.zaaim.arindexer.stemmer.ArabicStemmerKhoja;
 import io.zaaim.arindexer.util.Constants;
 
 import java.io.IOException;

@@ -3,7 +3,7 @@ package io.zaaim.arindexer.index.service.impl;
 import io.zaaim.arindexer.commun.model.Index;
 import io.zaaim.arindexer.commun.model.StopWords;
 import io.zaaim.arindexer.index.service.Indexer;
-import io.zaaim.arindexer.steemer.ArabicStemmerKhoja;
+import io.zaaim.arindexer.stemmer.ArabicStemmerKhoja;
 import io.zaaim.arindexer.util.Tokenizer;
 
 import java.io.IOException;

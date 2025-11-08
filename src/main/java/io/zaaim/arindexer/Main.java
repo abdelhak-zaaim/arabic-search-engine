@@ -4,15 +4,9 @@ import io.helidon.webserver.Routing;
 import io.helidon.webserver.WebServer;
 import io.zaaim.arindexer.controller.IndexController;
 import io.zaaim.arindexer.controller.SearchController;
-import io.zaaim.arindexer.index.service.impl.ArabicIndexer;
-import io.zaaim.arindexer.steemer.ArabicStemmerKhoja;
 import io.zaaim.arindexer.util.Constants;
 
-import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 
 public class Main {
 
