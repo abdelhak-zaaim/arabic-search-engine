@@ -19,8 +19,7 @@ public class ArabicIndexer implements Indexer {
         }
 
         Index index = new Index();
-        Map<String, Map<String, Integer>> invertedIndex = index.getInvertedIndex();
-
+        Map<String, Map<String, Integer>> invertedIndex = new HashMap<>();
 
         ArabicStemmerKhoja stemmer = new ArabicStemmerKhoja();
 
@@ -96,19 +95,10 @@ public class ArabicIndexer implements Indexer {
         return tfIdfIndex;
     }
 
-    private String[] removeStops(String[] tokens) {
+    private String[] removeStops(String[] tokens) throws IOException {
 
-        Set<String> stopWords = new HashSet<>();
-        try {
-            Path stopWordsPath = Path.of("src/main/resources/stopwords.txt");
-            List<String> lines = Files.readAllLines(stopWordsPath);
-            for (String line : lines) {
-                stopWords.add(line.trim());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        System.out.println("Stop Words: " + stopWords);
+        Path stopWordsPath = Path.of("src/main/resources/stopwords.txt");
+        List<String> stopWords = Files.readAllLines(stopWordsPath);
 
         return Arrays.stream(tokens).filter(token -> !stopWords.contains(token)).toArray(String[]::new);
     }
