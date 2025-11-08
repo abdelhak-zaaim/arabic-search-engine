@@ -5,13 +5,13 @@ import io.zaaim.arindexer.commun.model.StopWords;
 import io.zaaim.arindexer.index.service.Indexer;
 import io.zaaim.arindexer.stemmer.ArabicStemmerKhoja;
 import io.zaaim.arindexer.stemmer.Stemmer;
-import io.zaaim.arindexer.util.Constants;
 import io.zaaim.arindexer.util.Tokenizer;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ArabicIndexer implements Indexer {
 
@@ -21,36 +21,31 @@ public class ArabicIndexer implements Indexer {
             throw new IOException("Index path does not exist or is not a directory: " + indexPath);
         }
 
-        Map<String, Map<String, Integer>> invertedIndex = new HashMap<>();
-
         Stemmer stemmer = new ArabicStemmerKhoja();
 
         // get all text files from the directory
-        Files.walk(indexPath)
+        Map<String, Map<String, Integer>> invertedIndex = Files.walk(indexPath)
                 .filter(Files::isRegularFile)
                 .parallel()
                 .filter(path -> path.toString().endsWith(".txt"))
-                .forEach(path -> {
+                .map(path -> {
                     try {
                         Map<String, Integer> stemmerCache = new HashMap<>();
                         String content = Files.readString(path);
                         String fileName = indexPath.relativize(path).toString();
                         String[] tokens = Tokenizer.tokenize(content);
-
-                        // remove stop words
                         tokens = removeStops(tokens);
 
                         for (String token : tokens) {
                             String stemmed = stemmer.stem(token);
-                            // if stemmed already in cache, increment count, else add to cache
                             stemmerCache.put(stemmed, stemmerCache.getOrDefault(stemmed, 0) + 1);
                         }
-                        invertedIndex.put(fileName, stemmerCache);
-
+                        return Map.entry(fileName, stemmerCache);
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        throw new RuntimeException("Failed to process file: " + path, e);
                     }
-                });
+                })
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         return calculateTfIdf(invertedIndex);
     }

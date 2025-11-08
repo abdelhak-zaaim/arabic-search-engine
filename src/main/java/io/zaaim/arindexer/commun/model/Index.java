@@ -22,11 +22,15 @@ public class Index implements Serializable {
         // check if indexPath is set and load the index from file
         if (indexPath != null && indexPath.toFile().exists()) {
             // check if the path is xml or serialized object
+            Index index;
             if (indexPath.toString().endsWith(".xml")) {
-                return loadIndexFromXml(indexPath);
+                index = loadIndexFromXml(indexPath);
             } else {
-                return loadIndexFromFile(indexPath);
+                index = loadIndexFromFile(indexPath);
             }
+
+            index.indexPath = indexPath;
+            return index;
         }
         throw new IllegalStateException("Index path is not set or file does not exist");
     }
