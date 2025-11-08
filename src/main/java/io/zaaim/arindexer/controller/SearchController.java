@@ -17,7 +17,7 @@ public class SearchController {
             response.send("Missing query parameter 'q'. Example: /search?q=term");
             return;
         }
-        // Implement your search logic here
+
         response.send("Searching for: " + query);
     }
 
