@@ -53,36 +53,42 @@ public class ArabicIndexer implements Indexer {
     private Index calculateTfIdf(Map<String, Map<String, Integer>> invertedIndex) {
         int totalDocuments = invertedIndex.size();
         Index tfIdfIndex = new Index();
+
         // Calculate document frequency for each term
-        Map<String, Integer> documentFrequency = new HashMap<>();
-        for (Map<String, Integer> docTerms : invertedIndex.values()) {
-            for (String term : docTerms.keySet()) {
-                documentFrequency.put(term, documentFrequency.getOrDefault(term, 0) + 1);
-            }
-        }
+        Map<String, Integer> documentFrequency = invertedIndex.values().parallelStream()
+                .flatMap(docTerms -> docTerms.keySet().stream())
+                .collect(Collectors.toConcurrentMap(
+                        term -> term,
+                        term -> 1,
+                        Integer::sum
+                ));
 
+        // Calculate TF-IDF for each document
+        Map<String, Map<String, Float>> tfIdfMap = invertedIndex.entrySet().parallelStream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> {
+                            Map<String, Integer> termFrequencies = entry.getValue();
+                            int totalTermsInDoc = termFrequencies.values().stream()
+                                    .mapToInt(Integer::intValue)
+                                    .sum();
 
-        // Calculate TF-IDF for each term in each document
-        for (Map.Entry<String, Map<String, Integer>> entry : invertedIndex.entrySet()) {
-            String document = entry.getKey();
-            Map<String, Integer> termFrequencies = entry.getValue();
+                            return termFrequencies.entrySet().stream()
+                                    .collect(Collectors.toMap(
+                                            Map.Entry::getKey,
+                                            termEntry -> {
+                                                String term = termEntry.getKey();
+                                                int termCount = termEntry.getValue();
+                                                float tf = (float) termCount / totalTermsInDoc;
+                                                float idf = (float) Math.log((double) totalDocuments / documentFrequency.get(term));
+                                                return tf * idf;
+                                            }
+                                    ));
+                        }
+                ));
 
-            int totalTermsInDoc = termFrequencies.values().stream().mapToInt(Integer::intValue).sum();
-            Map<String, Float> tfIdfScores = new HashMap<>();
-
-            for (Map.Entry<String, Integer> termEntry : termFrequencies.entrySet()) {
-                String term = termEntry.getKey();
-                int termCount = termEntry.getValue();
-
-                float tf = (float) termCount / totalTermsInDoc;
-                float idf = (float) Math.log((double) totalDocuments / documentFrequency.get(term));
-                float tfIdf = tf * idf;
-
-                tfIdfScores.put(term, tfIdf);
-            }
-
-            tfIdfIndex.addEntry(document, tfIdfScores);
-        }
+        // Populate the Index object
+        tfIdfMap.forEach(tfIdfIndex::addEntry);
 
         return tfIdfIndex;
     }

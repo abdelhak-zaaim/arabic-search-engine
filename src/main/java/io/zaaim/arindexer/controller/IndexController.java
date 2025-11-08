@@ -3,6 +3,7 @@ package io.zaaim.arindexer.controller;
 import io.helidon.webserver.Routing;
 import io.helidon.webserver.ServerRequest;
 import io.helidon.webserver.ServerResponse;
+import io.zaaim.arindexer.commun.model.Index;
 import io.zaaim.arindexer.index.service.impl.ArabicIndexer;
 import io.zaaim.arindexer.stemmer.ArabicStemmerKhoja;
 import io.zaaim.arindexer.util.Constants;
@@ -29,8 +30,9 @@ public class IndexController {
 
     private void startIndexing(ServerRequest req, ServerResponse res) {
         try {
-            new ArabicIndexer().createIndex(Constants.STORAGE_DIR);
-            res.send("Indexing started successfully");
+            Index index = new ArabicIndexer().createIndex(Constants.STORAGE_DIR);
+            index.saveToFileAsXml(Constants.STORAGE_DIR.resolve("index.xml"));
+            res.send("Indexing started. Index saved to index.xml");
         } catch (IOException e) {
             res.status(500).send("Error starting indexing: " + e.getMessage());
         }
