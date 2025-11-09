@@ -1,12 +1,20 @@
 package io.zaaim.arindexer.controller;
 
+import io.helidon.common.http.MediaType;
 import io.helidon.webserver.Routing;
 import io.helidon.webserver.ServerRequest;
 import io.helidon.webserver.ServerResponse;
 import io.zaaim.arindexer.service.impl.SearchImpl;
+import io.zaaim.arindexer.util.Constants;
 
+import java.awt.image.AreaAveragingScaleFilter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class SearchController {
 
@@ -30,6 +38,18 @@ public class SearchController {
 
         Map<String, Float> results = searchService.search(query, filters, limit);
 
+        results = results.entrySet().stream().map(entry -> {
+            try {
+                return new AbstractMap.SimpleEntry<>(
+                        Files.readString(Path.of(Constants.STORAGE_DIR.resolve(entry.getKey()).toUri())),
+                        entry.getValue()
+                );
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }).limit(limit).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        response.headers().contentType(MediaType.parse("application/json; charset=UTF-8"));
         response.send("Search results for query '" + query + "': " + results);
 
     }
