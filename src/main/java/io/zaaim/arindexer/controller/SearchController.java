@@ -67,7 +67,6 @@ public class SearchController {
 
         response.headers().contentType(MediaType.parse("application/json; charset=UTF-8"));
         response.send(searchResponse);
-
     }
 
     private void searchByTerm(ServerRequest request, ServerResponse response) {

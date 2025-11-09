@@ -1,6 +1,6 @@
 # Arabic Search Engine with TF-IDF
 
-A complete, production-ready Arabic search engine implementation featuring TF-IDF vectorization, ISRI stemming, and a modern web interface.
+A production-ready Arabic search engine built with Helidon WebServer, featuring TF-IDF vectorization, ISRI stemming, persistent XML/serialized indexes, and a modern REST API with web interface for intelligent document retrieval.
 
 ## Features
 
@@ -158,30 +158,29 @@ curl "http://localhost:8080/api/search/related?docId=article-1&index=articles"
 ## Dependencies
 
 ```xml
-<!-- Core -->
+<!-- Helidon WebServer -->
 <dependency>
     <groupId>io.helidon.webserver</groupId>
     <artifactId>helidon-webserver</artifactId>
-    <version>4.3.1</version>
 </dependency>
 
-<!-- JSON Processing -->
+<!-- JSON Media Support -->
 <dependency>
-    <groupId>com.fasterxml.jackson.core</groupId>
-    <artifactId>jackson-databind</artifactId>
-    <version>2.16.0</version>
+    <groupId>io.helidon.media</groupId>
+    <artifactId>helidon-media-jsonp</artifactId>
 </dependency>
 
-<!-- Lucene -->
+<!-- Apache Lucene for Arabic Analysis -->
 <dependency>
     <groupId>org.apache.lucene</groupId>
     <artifactId>lucene-core</artifactId>
     <version>9.9.2</version>
 </dependency>
-
-<!-- ISRI Stemmer (to be added) -->
-<!-- Custom dependency for Arabic stemming -->
-```
+<dependency>
+    <groupId>org.apache.lucene</groupId>
+    <artifactId>lucene-analyzers-common</artifactId>
+    <version>9.9.2</version>
+</dependency>
 
 ## Building and Running
 
@@ -250,25 +249,24 @@ curl -X POST http://localhost:8080/api/indexes/articles/rebuild
 
 ```
 src/main/java/io/zaaim/arindexer/
-├── Main.java                          # Application entry point
-├── analysis/
-│   ├── CustomArabicAnalyzer.java     # Lucene analyzer
-│   └── CustomArabicStemFilter.java   # Stemming token filter
+├── Main.java
 ├── controller/
-│   ├── SearchController.java          # REST API endpoints
-│   └── WebUIController.java          # Web interface
+│   └── SearchController.java
+├── dto/
+│   ├── request/
+│   │   └── SearchRequest.java
+│   └── response/
+│       └── SearchResponse.java
 ├── model/
-│   ├── Document.java
-│   ├── SearchResult.java
-│   └── SearchResponse.java
+│   └── Index.java
 ├── service/
-│   ├── IndexService.java              # Indexing logic
-│   ├── SearchService.java             # Search logic
-│   └── QueryProcessor.java            # Query processing
+│   ├── Search.java
+│   └── impl/
+│       └── SearchImpl.java
 └── util/
-    ├── ArabicTokenizer.java           # Tokenization
-    ├── IndexMaps.java                 # Inverted index
-    └── TFIDFVector.java               # TF-IDF representation
+    ├── Constants.java
+    ├── TextProcessor.java
+    └── TfIdfCalculator.java
 ```
 
 ## Future Enhancements
