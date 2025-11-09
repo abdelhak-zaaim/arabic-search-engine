@@ -9,9 +9,13 @@ import java.util.Map;
 public class Index implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private Map<String, Map<String, Float>> index = new HashMap<>();
+    private Map<String, Map<String, Float>> indexMap = new HashMap<>();
 
     private Path indexPath;
+
+    public Index(Map<String, Map<String, Float>> indexMap) {
+       this.indexMap = indexMap;
+    }
 
     // Factory method to create Index from file path
     public static Index fromFile(Path indexPath) {
@@ -29,10 +33,6 @@ public class Index implements Serializable {
             return index;
         }
         throw new IllegalStateException("Index path is not set or file does not exist");
-    }
-
-    public void addEntry(String key, Map<String, Float> vector) {
-        index.put(key, new HashMap<>(vector));
     }
 
     public void saveIndexTotoFile(Path path) {
@@ -60,7 +60,7 @@ public class Index implements Serializable {
 
             // Write main index entries
             writer.write("  <entries>\n");
-            for (Map.Entry<String, Map<String, Float>> entry : index.entrySet()) {
+            for (Map.Entry<String, Map<String, Float>> entry : indexMap.entrySet()) {
                 writer.write("    <entry key=\"" + escapeXml(entry.getKey()) + "\">\n");
                 for (Map.Entry<String, Float> vector : entry.getValue().entrySet()) {
                     writer.write("      <vector term=\"" + escapeXml(vector.getKey()) +
@@ -77,7 +77,7 @@ public class Index implements Serializable {
     }
 
     private void writeIndexContent(BufferedWriter writer, Index idx, String indent) throws IOException {
-        for (Map.Entry<String, Map<String, Float>> entry : idx.index.entrySet()) {
+        for (Map.Entry<String, Map<String, Float>> entry : idx.indexMap.entrySet()) {
             writer.write(indent + "<entry key=\"" + escapeXml(entry.getKey()) + "\">\n");
             for (Map.Entry<String, Float> vector : entry.getValue().entrySet()) {
                 writer.write(indent + "  <vector term=\"" + escapeXml(vector.getKey()) +
@@ -97,7 +97,7 @@ public class Index implements Serializable {
 
     public static Index loadIndexFromXml(Path path) {
         try (BufferedReader reader = new BufferedReader(new FileReader(path.toFile()))) {
-            Index index = new Index();
+            Map<String, Map<String, Float>> vector = new HashMap<>();
             String line;
             Index currentSubIndex = null;
             String currentKey = null;
@@ -119,9 +119,9 @@ public class Index implements Serializable {
                 } else if (line.startsWith("</entry>")) {
                     if (currentKey != null && currentVector != null) {
                         if (currentSubIndex != null) {
-                            currentSubIndex.addEntry(currentKey, currentVector);
+                            vector.put(currentKey, currentVector);
                         } else {
-                            index.addEntry(currentKey, currentVector);
+                            vector.put(currentKey, currentVector);
                         }
                         currentKey = null;
                         currentVector = null;
@@ -129,7 +129,7 @@ public class Index implements Serializable {
                 }
             }
 
-            return index;
+            return new Index(vector);
         } catch (IOException e) {
             throw new RuntimeException("Failed to load index from XML: " + path, e);
         }

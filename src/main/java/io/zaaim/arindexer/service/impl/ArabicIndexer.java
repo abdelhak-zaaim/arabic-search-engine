@@ -47,12 +47,12 @@ public class ArabicIndexer implements Indexer {
                 })
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        return calculateTfIdf(invertedIndex);
+        return new Index(calculateTfIdf(invertedIndex));
     }
 
-    private Index calculateTfIdf(Map<String, Map<String, Integer>> invertedIndex) {
+    private Map<String, Map<String, Float>> calculateTfIdf(Map<String, Map<String, Integer>> invertedIndex) {
         int totalDocuments = invertedIndex.size();
-        Index tfIdfIndex = new Index();
+        Map<String, Map<String, Float>> tfIdfIndex = new HashMap<>();
 
         // Calculate document frequency for each term
         Map<String, Integer> documentFrequency = invertedIndex.values().parallelStream()
@@ -88,7 +88,7 @@ public class ArabicIndexer implements Indexer {
                 ));
 
         // Populate the Index object
-        tfIdfMap.forEach(tfIdfIndex::addEntry);
+        tfIdfMap.forEach(tfIdfIndex::put);
 
         return tfIdfIndex;
     }
