@@ -9,12 +9,15 @@ import java.util.Map;
 public class Index implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private Map<String, Map<String, Float>> indexMap = new HashMap<>();
-
+    private Map<String, Map<String, Float>> indexMap;
     private Path indexPath;
 
     public Index(Map<String, Map<String, Float>> indexMap) {
-       this.indexMap = indexMap;
+        // Deep copy to ensure immutability
+        this.indexMap = new HashMap<>();
+        for (Map.Entry<String, Map<String, Float>> entry : indexMap.entrySet()) {
+            this.indexMap.put(entry.getKey(), new HashMap<>(entry.getValue()));
+        }
     }
 
     // Factory method to create Index from file path
@@ -33,6 +36,10 @@ public class Index implements Serializable {
             return index;
         }
         throw new IllegalStateException("Index path is not set or file does not exist");
+    }
+
+    public Map<String, Map<String, Float>> getIndexMap() {
+        return Collections.unmodifiableMap(indexMap);
     }
 
     public void saveIndexTotoFile(Path path) {

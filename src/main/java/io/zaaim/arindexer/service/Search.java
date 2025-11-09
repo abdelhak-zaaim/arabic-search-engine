@@ -4,7 +4,8 @@ import io.helidon.common.http.HttpRequest;
 import io.zaaim.arindexer.model.Index;
 
 import java.util.List;
+import java.util.Map;
 
 public interface Search {
-    List<String> search(String query, String[] filters, int limit);
+    Map<String, Float> search(String query, String[] filters, int limit);
 }

@@ -6,6 +6,7 @@ import io.helidon.webserver.ServerResponse;
 import io.zaaim.arindexer.service.impl.SearchImpl;
 
 import java.util.List;
+import java.util.Map;
 
 public class SearchController {
 
@@ -27,7 +28,7 @@ public class SearchController {
         String[] filters = index.split("/");
         SearchImpl searchService = new SearchImpl();
 
-        List<String> results = searchService.search(query, filters, limit);
+        Map<String, Float> results = searchService.search(query, filters, limit);
 
         response.send("Search results for query '" + query + "': " + results);
 
