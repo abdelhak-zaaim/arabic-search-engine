@@ -49,16 +49,19 @@ public class SearchImpl implements Search {
                 String docName = docEntry.getKey();
 
                 // Apply filters if provided
-//                if (filters != null && filters.length > 0) {
-//                    boolean matches = false;
-//                    for (String filter : filters) {
-//                        if (docName.contains(filter)) {
-//                            matches = true;
-//                            break;
-//                        }
-//                    }
-//                    if (!matches) continue;
-//                }
+                if (filters != null && filters.length > 0) {
+                    String[] docParts = docName.split("/");
+                    if (docParts.length < filters.length) continue;
+                    boolean matches = false;
+                    for (int i = 0; i < filters.length; i++) {
+                        if (!docParts[i].toLowerCase().trim().equals(filters[i].toLowerCase().trim())) {
+                            matches = false;
+                            break;
+                        }
+                        matches = true;
+                    }
+                    if (!matches) continue;
+                }
 
                 Map<String, Float> docVector = docEntry.getValue();
                 float similarity = TfIdfCalculator.calculateCosineSimilarity(queryTfIdf, docVector);
