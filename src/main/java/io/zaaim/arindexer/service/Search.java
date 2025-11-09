@@ -7,5 +7,5 @@ import java.util.List;
 import java.util.Map;
 
 public interface Search {
-    Map<String, Float> search(String query, String[] filters, int limit);
+    Map<String, Float> search(String query, String index, int limit);
 }

@@ -8,7 +8,6 @@ import io.zaaim.arindexer.dto.response.SearchResponse;
 import io.zaaim.arindexer.service.impl.SearchImpl;
 import io.zaaim.arindexer.util.Constants;
 
-import java.awt.image.AreaAveragingScaleFilter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,7 +20,22 @@ public class SearchController {
 
     public void configureRoutes(Routing.Builder routing) {
         routing.get("/search/{index}", this::search)
-                .get("/search/{term}", this::searchByTerm);
+                .get("/search/{term}", this::searchByTerm)
+                .get("/indexes", this::getIndexes);
+    }
+
+    private void getIndexes(ServerRequest serverRequest, ServerResponse serverResponse) {
+        try {
+            List<String> indexes = Files.list(Constants.INDEXES_DIR)
+                    .filter(Files::isRegularFile)
+                    .map(path -> path.getFileName().toString())
+                    .collect(Collectors.toList());
+
+            serverResponse.headers().contentType(MediaType.parse("application/json; charset=UTF-8"));
+            serverResponse.send(indexes);
+        } catch (IOException e) {
+            serverResponse.status(500).send("Error retrieving indexes: " + e.getMessage());
+        }
     }
 
     private void search(ServerRequest request, ServerResponse response) {
@@ -34,10 +48,9 @@ public class SearchController {
         int limit = Integer.parseInt(request.queryParams().first("limit").orElse("5"));
 
         String index = request.path().param("index");
-        String[] filters = index.split("/");
         SearchImpl searchService = new SearchImpl();
 
-        Map<String, Float> results = searchService.search(query, filters, limit);
+        Map<String, Float> results = searchService.search(query, index, limit);
 
         results = results.entrySet().stream().map(entry -> {
             try {
@@ -50,7 +63,7 @@ public class SearchController {
             }
         }).limit(limit).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        SearchResponse searchResponse = new SearchResponse(query, filters, limit,results);
+        SearchResponse searchResponse = new SearchResponse(query, index, limit,results);
 
         response.headers().contentType(MediaType.parse("application/json; charset=UTF-8"));
         response.send(searchResponse);

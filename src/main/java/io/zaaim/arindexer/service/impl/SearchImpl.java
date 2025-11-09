@@ -6,19 +6,38 @@ import io.zaaim.arindexer.util.Constants;
 import io.zaaim.arindexer.util.TextProcessor;
 import io.zaaim.arindexer.util.TfIdfCalculator;
 
+import java.io.StreamCorruptedException;
 import java.lang.ref.WeakReference;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.nio.file.Path;
+import java.util.*;
 
 public class SearchImpl implements Search {
 
     @Override
-    public Map<String, Float> search(String query, String[] filters, int limit) {
+    public Map<String, Float> search(String query, String indexRelativePath, int limit) {
         try {
-            // Load the index
-            Index index = Index.loadIndexFromXml(Constants.INDEXES_DIR.resolve("index-1762615442274.ser"));
+
+            Path indexDir = Constants.INDEXES_DIR;
+            String[] files = indexDir.toFile().list();
+            if (files == null || files.length == 0) {
+                throw new RuntimeException("No index files found in directory: " + indexDir.toString());
+            }
+
+            String indexPath = Arrays.stream(files).filter(str -> str.startsWith(indexRelativePath) && (str.endsWith(".esr") || str.endsWith(".xml")))
+                    .sorted((str1, str2) -> {
+                        Long l1 = indexDir.resolve(str1).toFile().lastModified();
+                        Long l2 = indexDir.resolve(str2).toFile().lastModified();
+                        return l2.compareTo(l1);
+                    }).findFirst().orElseThrow(() -> new RuntimeException("Index file not found: " + indexRelativePath));
+
+            Index index;
+            if (indexPath.endsWith(".ser")) {
+                index = Index.loadIndexFromFile(indexDir.resolve(indexPath));
+            } else {
+                index = Index.loadIndexFromXml(indexDir.resolve(indexPath));
+            }
+
+
             Map<String, Map<String, Float>> indexMap = index.getIndexMap();
 
             if (indexMap == null || indexMap.isEmpty()) {
@@ -48,20 +67,6 @@ public class SearchImpl implements Search {
             for (Map.Entry<String, Map<String, Float>> docEntry : indexMap.entrySet()) {
                 String docName = docEntry.getKey();
 
-                // Apply filters if provided
-//                if (filters != null && filters.length > 0) {
-//                    String[] docParts = docName.split("/");
-//                    if (docParts.length < filters.length) continue;
-//                    boolean matches = false;
-//                    for (int i = 0; i < filters.length; i++) {
-//                        if (!docParts[i].toLowerCase().trim().equals(filters[i].toLowerCase().trim())) {
-//                            matches = false;
-//                            break;
-//                        }
-//                        matches = true;
-//                    }
-//                    if (!matches) continue;
-//                }
 
                 Map<String, Float> docVector = docEntry.getValue();
                 float similarity = TfIdfCalculator.calculateCosineSimilarity(queryTfIdf, docVector);

@@ -33,11 +33,13 @@ public class IndexController {
             Index index = new ArabicIndexer().createIndex(Constants.STORAGE_DIR);
 
             if (!Files.exists(Constants.INDEXES_DIR)) Files.createDirectories(Constants.INDEXES_DIR);
-            String indexFileName = "index-" + System.currentTimeMillis() + ".ser";
+            String xmlIndexFileName = "index-" + System.currentTimeMillis() + ".xml";
+            String serIndexFileName = "index-" + System.currentTimeMillis() + ".ser";
 
-            index.saveToFileAsXml(Constants.INDEXES_DIR.resolve(indexFileName));
+            index.saveToFileAsXml(Constants.INDEXES_DIR.resolve(xmlIndexFileName));
+            index.saveIndexTotoFile(Constants.INDEXES_DIR.resolve(serIndexFileName));
 
-            res.send("Indexing started. Index saved to: " + Constants.INDEXES_DIR.resolve(indexFileName));
+            res.send("Indexing started. Index saved to: " + Constants.INDEXES_DIR.resolve(serIndexFileName));
         } catch (IOException e) {
             res.status(500).send("Error starting indexing: " + e.getMessage());
         }
