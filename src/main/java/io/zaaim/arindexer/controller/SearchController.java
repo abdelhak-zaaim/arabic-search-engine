@@ -4,6 +4,7 @@ import io.helidon.common.http.MediaType;
 import io.helidon.webserver.Routing;
 import io.helidon.webserver.ServerRequest;
 import io.helidon.webserver.ServerResponse;
+import io.zaaim.arindexer.dto.response.SearchResponse;
 import io.zaaim.arindexer.service.impl.SearchImpl;
 import io.zaaim.arindexer.util.Constants;
 
@@ -49,8 +50,10 @@ public class SearchController {
             }
         }).limit(limit).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
+        SearchResponse searchResponse = new SearchResponse(query, filters, limit,results);
+
         response.headers().contentType(MediaType.parse("application/json; charset=UTF-8"));
-        response.send("Search results for query '" + query + "': " + results);
+        response.send(searchResponse);
 
     }
 

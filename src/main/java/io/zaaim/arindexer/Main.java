@@ -1,5 +1,6 @@
 package io.zaaim.arindexer;
 
+import io.helidon.media.jackson.JacksonSupport;
 import io.helidon.webserver.Routing;
 import io.helidon.webserver.WebServer;
 import io.zaaim.arindexer.controller.IndexController;
@@ -21,13 +22,14 @@ public class Main {
         searchController.configureRoutes(routingBuilder);
         Routing routing = routingBuilder.build();
 
-        WebServer.builder()
-                .routing(routing)
-                .port(9001)
-                .build()
-                .start()
-                .thenAccept(ws -> System.out.println(
-                        "Server started at: http://localhost:" + ws.port()
-                                + " | save dir: " + Constants.STORAGE_DIR));
+        WebServer webServer = WebServer.builder().port(9001).addMediaSupport(JacksonSupport.create()).addRouting(routing).build();
+
+        webServer.start().thenAccept(ws ->
+                System.out.println("Web server is up! http://localhost:" + ws.port())
+        ).exceptionally(t -> {
+            System.err.println("Startup failed: " + t.getMessage());
+            t.printStackTrace(System.err);
+            return null;
+        });
     }
 }
