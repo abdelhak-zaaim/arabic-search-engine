@@ -6,8 +6,6 @@ import io.zaaim.arindexer.util.Constants;
 import io.zaaim.arindexer.util.TextProcessor;
 import io.zaaim.arindexer.util.TfIdfCalculator;
 
-import java.io.StreamCorruptedException;
-import java.lang.ref.WeakReference;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -66,7 +64,6 @@ public class SearchImpl implements Search {
             Map<String, Float> similarities = new HashMap<>();
             for (Map.Entry<String, Map<String, Float>> docEntry : indexMap.entrySet()) {
                 String docName = docEntry.getKey();
-
 
                 Map<String, Float> docVector = docEntry.getValue();
                 float similarity = TfIdfCalculator.calculateCosineSimilarity(queryTfIdf, docVector);
