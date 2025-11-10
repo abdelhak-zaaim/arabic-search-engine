@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محرك البحث العربي - Arabic Search Engine</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>محرك البحث العربي</h1>
+            <p class="subtitle">Arabic Search Engine</p>
+        </header>
+
+        <div class="search-section">
+            <div class="input-group">
+                <input type="text" id="searchQuery" placeholder="أدخل كلمة البحث... Enter search query..." />
+                <button id="searchBtn">بحث Search</button>
+            </div>
+        </div>
+
+        <div class="indexes-section">
+            <h2>الفهارس المتاحة - Available Indexes</h2>
+            <button id="refreshIndexes">تحديث Refresh</button>
+            <div id="indexesList" class="indexes-list"></div>
+        </div>
+
+        <div class="results-section" id="resultsSection" style="display: none;">
+            <h2>النتائج - Results</h2>
+            <div id="searchResults"></div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

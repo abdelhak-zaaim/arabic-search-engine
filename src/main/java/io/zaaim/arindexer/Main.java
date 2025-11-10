@@ -5,6 +5,7 @@ import io.helidon.webserver.Routing;
 import io.helidon.webserver.WebServer;
 import io.zaaim.arindexer.controller.IndexController;
 import io.zaaim.arindexer.controller.SearchController;
+import io.zaaim.arindexer.controller.WebController;
 import io.zaaim.arindexer.util.Constants;
 
 import java.nio.file.Files;
@@ -16,10 +17,13 @@ public class Main {
 
         IndexController controller = new IndexController();
         SearchController searchController = new SearchController();
+        WebController webController = new WebController();
 
         Routing.Builder routingBuilder = Routing.builder();
         controller.configureRoutes(routingBuilder);
         searchController.configureRoutes(routingBuilder);
+        webController.configureRoutes(routingBuilder);
+
         Routing routing = routingBuilder.build();
 
         WebServer webServer = WebServer.builder().port(9001).addMediaSupport(JacksonSupport.create()).addRouting(routing).build();
