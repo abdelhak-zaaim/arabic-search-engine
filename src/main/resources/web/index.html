@@ -9,28 +9,110 @@
 <body>
     <div class="container">
         <header>
-            <h1>محرك البحث العربي</h1>
-            <p class="subtitle">Arabic Search Engine</p>
+            <h1>🔍 محرك البحث العربي</h1>
+            <p class="subtitle">Arabic Search Engine - Advanced IR System</p>
         </header>
 
-        <div class="search-section">
-            <div class="input-group">
-                <input type="text" id="searchQuery" placeholder="أدخل كلمة البحث... Enter search query..." />
-                <button id="searchBtn">بحث Search</button>
+        <!-- Navigation Tabs -->
+        <nav class="tabs">
+            <button class="tab-btn active" data-tab="search">🔍 البحث Search</button>
+            <button class="tab-btn" data-tab="documents">📄 المستندات Documents</button>
+            <button class="tab-btn" data-tab="indexes">📚 الفهارس Indexes</button>
+            <button class="tab-btn" data-tab="add">➕ إضافة Add</button>
+        </nav>
+
+        <!-- Search Tab -->
+        <div class="tab-content active" id="search-tab">
+            <div class="search-section">
+                <h2>🔎 البحث في المستندات</h2>
+
+                <div class="search-controls">
+                    <div class="input-group">
+                        <input type="text" id="searchQuery" placeholder="أدخل كلمة البحث... Enter search query..." />
+                        <button id="searchBtn" class="btn btn-primary">بحث Search</button>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="indexSelect">اختر الفهرس Select Index:</label>
+                        <select id="indexSelect">
+                            <option value="">-- كل الفهارس All Indexes --</option>
+                        </select>
+
+                        <label for="limitSelect">عدد النتائج Results Limit:</label>
+                        <select id="limitSelect">
+                            <option value="5">5</option>
+                            <option value="10" selected>10</option>
+                            <option value="20">20</option>
+                            <option value="50">50</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="results-section" id="resultsSection">
+                    <div class="results-header">
+                        <h3>النتائج Results</h3>
+                        <span id="resultsCount" class="results-count"></span>
+                    </div>
+                    <div id="searchResults"></div>
+                </div>
             </div>
         </div>
 
-        <div class="indexes-section">
-            <h2>الفهارس المتاحة - Available Indexes</h2>
-            <button id="refreshIndexes">تحديث Refresh</button>
-            <div id="indexesList" class="indexes-list"></div>
+        <!-- Documents Tab -->
+        <div class="tab-content" id="documents-tab">
+            <div class="documents-section">
+                <div class="section-header">
+                    <h2>📄 المستندات المتاحة</h2>
+                    <button id="refreshDocuments" class="btn btn-success">🔄 تحديث Refresh</button>
+                </div>
+                <div id="documentsList" class="documents-list"></div>
+            </div>
         </div>
 
-        <div class="results-section" id="resultsSection" style="display: none;">
-            <h2>النتائج - Results</h2>
-            <div id="searchResults"></div>
+        <!-- Indexes Tab -->
+        <div class="tab-content" id="indexes-tab">
+            <div class="indexes-section">
+                <div class="section-header">
+                    <h2>📚 الفهارس المتاحة</h2>
+                    <div class="action-buttons">
+                        <button id="refreshIndexes" class="btn btn-success">🔄 تحديث Refresh</button>
+                        <button id="startIndexing" class="btn btn-primary">▶️ بدء الفهرسة Start Indexing</button>
+                    </div>
+                </div>
+                <div id="indexesList" class="indexes-list"></div>
+            </div>
+        </div>
+
+        <!-- Add Document Tab -->
+        <div class="tab-content" id="add-tab">
+            <div class="add-section">
+                <h2>➕ إضافة مستند جديد</h2>
+                <form id="addDocumentForm">
+                    <div class="form-group">
+                        <label for="docName">اسم المستند Document Name:</label>
+                        <input type="text" id="docName" placeholder="document.txt" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="docContent">المحتوى Content:</label>
+                        <textarea id="docContent" rows="15" placeholder="أدخل محتوى المستند العربي هنا...&#10;Enter Arabic document content here..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">💾 حفظ المستند Save Document</button>
+                </form>
+            </div>
         </div>
     </div>
+
+    <!-- Loading Modal -->
+    <div id="loadingModal" class="modal">
+        <div class="modal-content">
+            <div class="spinner"></div>
+            <p>جاري التحميل... Loading...</p>
+        </div>
+    </div>
+
     <script src="app.js"></script>
 </body>
 </html>
+

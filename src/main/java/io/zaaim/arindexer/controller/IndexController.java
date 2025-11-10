@@ -1,5 +1,6 @@
 package io.zaaim.arindexer.controller;
 
+import io.helidon.common.http.MediaType;
 import io.helidon.webserver.Routing;
 import io.helidon.webserver.ServerRequest;
 import io.helidon.webserver.ServerResponse;
@@ -13,6 +14,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class IndexController {
 
@@ -21,7 +27,9 @@ public class IndexController {
                 .get("/greet", this::greet)
                 .get("/startIndexing", this::startIndexing)
                 .get("/stem/{word}", this::stem)
-                .post("/{index}/save", this::save);
+                .post("/{index}/save", this::save)
+                .post("/document/add", this::addDocument)
+                .get("/documents", this::getDocuments);
     }
 
     private void greet(ServerRequest req, ServerResponse res) {
@@ -101,5 +109,79 @@ public class IndexController {
                     response.send("Failed to read request body: " + ex.getMessage());
                     return null;
                 });
+    }
+
+    private void addDocument(ServerRequest request, ServerResponse response) {
+        String fileName = request.queryParams().first("name").orElse(null);
+        if (fileName == null || fileName.isBlank()) {
+            response.status(400).send("{\"error\": \"Missing query parameter 'name'\"}");
+            return;
+        }
+
+        String safeFileName = Paths.get(fileName).getFileName().toString();
+
+        request.content().as(String.class)
+                .thenAccept(content -> {
+                    try {
+                        Files.createDirectories(Constants.STORAGE_DIR);
+                        Path target = Constants.STORAGE_DIR.resolve(safeFileName).normalize();
+
+                        if (!target.startsWith(Constants.STORAGE_DIR)) {
+                            response.status(400).send("{\"error\": \"Invalid file name\"}");
+                            return;
+                        }
+
+                        Files.writeString(target, content,
+                                StandardOpenOption.CREATE,
+                                StandardOpenOption.TRUNCATE_EXISTING);
+
+                        response.headers().contentType(MediaType.parse("application/json; charset=UTF-8"));
+                        response.send("{\"message\": \"Document added successfully\", \"path\": \"" + target.getFileName() + "\"}");
+                    } catch (IOException e) {
+                        response.status(500).send("{\"error\": \"Error saving document: " + e.getMessage() + "\"}");
+                    }
+                })
+                .exceptionally(ex -> {
+                    response.status(500).send("{\"error\": \"Failed to read request body: " + ex.getMessage() + "\"}");
+                    return null;
+                });
+    }
+
+    private void getDocuments(ServerRequest request, ServerResponse response) {
+        try {
+            if (!Files.exists(Constants.STORAGE_DIR)) {
+                Files.createDirectories(Constants.STORAGE_DIR);
+            }
+
+            List<Map<String, String>> documents;
+
+            try (Stream<Path> paths = Files.walk(Constants.STORAGE_DIR)) {
+                documents = paths
+                        .filter(Files::isRegularFile)
+                        .map(path -> {
+                            Map<String, String> doc = new HashMap<>();
+                            doc.put("name", path.getFileName().toString());
+                            doc.put("path", Constants.STORAGE_DIR.relativize(path).toString());
+                            try {
+                                doc.put("size", String.valueOf(Files.size(path)));
+                                doc.put("modified", Files.getLastModifiedTime(path).toString());
+                                // Read first 200 chars as preview
+                                String content = Files.readString(path);
+                                doc.put("preview", content.substring(0, Math.min(200, content.length())));
+                            } catch (IOException e) {
+                                doc.put("size", "Unknown");
+                                doc.put("modified", "Unknown");
+                                doc.put("preview", "");
+                            }
+                            return doc;
+                        })
+                        .collect(Collectors.toList());
+            }
+
+            response.headers().contentType(MediaType.parse("application/json; charset=UTF-8"));
+            response.send(documents);
+        } catch (IOException e) {
+            response.status(500).send("{\"error\": \"Error retrieving documents: " + e.getMessage() + "\"}");
+        }
     }
 }

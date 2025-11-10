@@ -20,16 +20,19 @@ public class SearchController {
 
     public void configureRoutes(Routing.Builder routing) {
         routing.get("/search/{index}", this::search)
-                .get("/search/{term}", this::searchByTerm)
+                .get("/search", this::searchDefault)
                 .get("/indexes", this::getIndexes);
     }
 
     private void getIndexes(ServerRequest serverRequest, ServerResponse serverResponse) {
         try {
-            List<String> indexes = Files.list(Constants.INDEXES_DIR)
-                    .filter(Files::isRegularFile)
-                    .map(path -> path.getFileName().toString())
-                    .collect(Collectors.toList());
+            List<String> indexes;
+            try (var stream = Files.list(Constants.INDEXES_DIR)) {
+                indexes = stream
+                        .filter(Files::isRegularFile)
+                        .map(path -> path.getFileName().toString())
+                        .collect(Collectors.toList());
+            }
 
             serverResponse.headers().contentType(MediaType.parse("application/json; charset=UTF-8"));
             serverResponse.send(indexes);
@@ -69,13 +72,33 @@ public class SearchController {
         response.send(searchResponse);
     }
 
-    private void searchByTerm(ServerRequest request, ServerResponse response) {
-        String term = request.path().param("term");
-        if (term == null || term.isBlank()) {
-            response.send("Missing path parameter 'term'.");
+    private void searchDefault(ServerRequest request, ServerResponse response) {
+        String index = request.queryParams().first("index").orElse(null);
+        if (index == null || index.isBlank()) {
+            response.send("Missing query parameter 'index'.");
             return;
         }
-        // Implement your search logic here
-        response.send("Searching for term: " + term);
+
+        String query = request.queryParams().first("q").orElse("");
+        int limit = Integer.parseInt(request.queryParams().first("limit").orElse("5"));
+
+        SearchImpl searchService = new SearchImpl();
+        Map<String, Float> results = searchService.search(query, index, limit);
+
+        results = results.entrySet().stream().map(entry -> {
+            try {
+                return new AbstractMap.SimpleEntry<>(
+                        Files.readString(Path.of(Constants.STORAGE_DIR.resolve(entry.getKey()).toUri())),
+                        entry.getValue()
+                );
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }).limit(limit).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        SearchResponse searchResponse = new SearchResponse(query, index, limit,results);
+
+        response.headers().contentType(MediaType.parse("application/json; charset=UTF-8"));
+        response.send(searchResponse);
     }
 }

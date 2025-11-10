@@ -21,7 +21,7 @@ public class SearchImpl implements Search {
                 throw new RuntimeException("No index files found in directory: " + indexDir.toString());
             }
 
-            String indexPath = Arrays.stream(files).filter(str -> str.startsWith(indexRelativePath) && (str.endsWith(".esr") || str.endsWith(".xml")))
+            String indexPath = Arrays.stream(files).filter(str -> str.startsWith(indexRelativePath) && (str.endsWith(".ser") || str.endsWith(".xml")))
                     .sorted((str1, str2) -> {
                         Long l1 = indexDir.resolve(str1).toFile().lastModified();
                         Long l2 = indexDir.resolve(str2).toFile().lastModified();
