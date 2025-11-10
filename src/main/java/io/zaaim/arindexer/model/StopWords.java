@@ -10,20 +10,31 @@ import java.util.List;
 import java.util.Set;
 
 public class StopWords {
-    private static WeakReference<Set<String>> stopWordsRef;
+    private static volatile Set<String> stopWords;
 
     public Set<String> getStopWords() {
-        if (stopWordsRef == null || stopWordsRef.get() == null) {
-            Path stopWordsPath = Path.of("src/main/resources/stopwords.txt");
-            try {
-                List<String> stopWords = Files.readAllLines(stopWordsPath);
-                stopWordsRef = new WeakReference<>(Collections.unmodifiableSet(new HashSet<>(stopWords)));
-                return stopWordsRef.get();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+        if (stopWords == null) {
+            synchronized (StopWords.class) {
+                if (stopWords == null) {
+                    stopWords = loadStopWords();
+                }
             }
         }
-        return stopWordsRef.get();
+        return stopWords;
     }
 
+    private Set<String> loadStopWords() {
+        try (var stream = getClass().getClassLoader()
+                .getResourceAsStream("stopwords.txt")) {
+            if (stream == null) {
+                throw new IllegalStateException("stopwords.txt not found in classpath");
+            }
+            List<String> words = new String(stream.readAllBytes())
+                    .lines()
+                    .toList();
+            return Collections.unmodifiableSet(new HashSet<>(words));
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to load stop words", e);
+        }
+    }
 }
