@@ -5,6 +5,7 @@ import io.helidon.webserver.Routing;
 import io.helidon.webserver.ServerRequest;
 import io.helidon.webserver.ServerResponse;
 import io.zaaim.arindexer.dto.response.SearchResponse;
+import io.zaaim.arindexer.service.DocumentIndexService;
 import io.zaaim.arindexer.service.impl.SearchImpl;
 import io.zaaim.arindexer.util.Constants;
 
@@ -17,6 +18,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class SearchController {
+    private final DocumentIndexService indexService;
+
+
+    public SearchController(DocumentIndexService indexService) {
+        this.indexService = indexService;
+    }
 
     public void configureRoutes(Routing.Builder routing) {
         routing.get("/search/{index}", this::search)
@@ -47,31 +54,27 @@ public class SearchController {
             response.send("Missing query parameter 'q'. Example: /search?q=term");
             return;
         }
-
-        int limit = Integer.parseInt(request.queryParams().first("limit").orElse("5"));
-
+        int limit;
+        try {
+            limit = Integer.parseInt(request.queryParams().first("limit").orElse("5"));
+        } catch (NumberFormatException e) {
+            response.status(400).send("Invalid limit");
+            return;
+        }
         String index = request.path().param("index");
-        SearchImpl searchService = new SearchImpl();
 
-        Map<String, Float> results = searchService.search(query, index, limit);
+        Map<String, Float> rawResults = indexService.search(query, index, limit);
 
-        results = results.entrySet().stream().map(entry -> {
-            try {
-                return new AbstractMap.SimpleEntry<>(
-                        Files.readString(Path.of(Constants.STORAGE_DIR.resolve(entry.getKey()).toUri())),
-                        entry.getValue()
-                );
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }).limit(limit).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        Map<String, Float> hydrated = rawResults.entrySet().stream()
+                .limit(limit)
+                .collect(java.util.stream.Collectors.toMap(
+                        e -> indexService.fetchContent(e.getKey()),
+                        Map.Entry::getValue));
 
-        SearchResponse searchResponse = new SearchResponse(query, index, limit,results);
-
-        response.headers().contentType(MediaType.parse("application/json; charset=UTF-8"));
+        SearchResponse searchResponse = new SearchResponse(query, index, limit, hydrated);
+        response.headers().contentType(io.helidon.common.http.MediaType.parse("application/json; charset=UTF-8"));
         response.send(searchResponse);
     }
-
     private void searchDefault(ServerRequest request, ServerResponse response) {
         String index = request.queryParams().first("index").orElse(null);
         if (index == null || index.isBlank()) {
