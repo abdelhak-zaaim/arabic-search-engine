@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Set;
 
 public class StopWords {
-    private WeakReference<Set<String>> stopWordsRef;
+    private static WeakReference<Set<String>> stopWordsRef;
 
     public Set<String> getStopWords() {
         if (stopWordsRef == null || stopWordsRef.get() == null) {
